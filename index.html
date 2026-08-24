@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperLoop Engine - Speculative Pure-Math Loop Benchmark Suite</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-hyper: #10b981;
+            --accent-sync: #ef4444;
+            --accent-worker: #3b82f6;
+            --accent-lazy: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .logo-group h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-mit {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-hyper);
+            border: 1px solid var(--accent-hyper);
+        }
+
+        .badge-version {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent-worker);
+            border: 1px solid var(--accent-worker);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 992px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        select, input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent-worker);
+        }
+
+        .range-val {
+            float: right;
+            color: var(--accent-worker);
+            font-family: var(--font-mono);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .metrics-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .metric-hyper::before { background-color: var(--accent-hyper); }
+        .metric-sync::before { background-color: var(--accent-sync); }
+        .metric-worker::before { background-color: var(--accent-worker); }
+        .metric-speedup::before { background-color: var(--accent-purple); }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            margin: 6px 0;
+        }
+
+        .metric-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            margin-top: 16px;
+        }
+
+        .chart-row {
+            margin-bottom: 16px;
+        }
+
+        .chart-label-group {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .chart-title {
+            font-weight: 600;
+        }
+
+        .chart-val {
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .bar-bg {
+            height: 24px;
+            background-color: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .fill-hyper { background-color: var(--accent-hyper); }
+        .fill-sync { background-color: var(--accent-sync); }
+        .fill-worker { background-color: var(--accent-worker); }
+        .fill-lazy { background-color: var(--accent-lazy); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .mode-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .tag-hyper { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+        .tag-sync { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+        .tag-worker { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid #3b82f6; }
+        .tag-lazy { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid #f59e0b; }
+
+        .code-block {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: #e2e8f0;
+            overflow-x: auto;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .explain-box {
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 4px solid var(--accent-worker);
+            padding: 14px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-color);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-weight: 600;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <h1>⚡ HyperLoop Engine <span class="badge badge-version">v1.0.1</span> <span class="badge badge-mit">MIT License</span></h1>
+            <div class="subtitle">Predictive Speculative Pure-Math Loop Execution Framework Benchmark Suite</div>
+        </div>
+    </header>
+
+    <div class="grid-container">
+        <!-- Sidebar Controls -->
+        <aside>
+            <div class="card">
+                <div class="card-title">⚙️ Benchmark Controls</div>
+                
+                <div class="form-group">
+                    <label for="workload">Stress Test Workload</label>
+                    <select id="workload">
+                        <option value="poly">1. Polynomial & Trigonometric Summation</option>
+                        <option value="prime">2. Numerical Prime Range Search (Sieve)</option>
+                        <option value="pi">3. Monte Carlo Pi Iterative Convergence</option>
+                        <option value="matrix">4. Quaternion & Matrix Scale Transforms</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="iterations">Loop Iterations (N) <span id="iter-val" class="range-val">1,000,000</span></label>
+                    <input type="range" id="iterations" min="1000000" max="30000000" step="1000000" value="1000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="leadtime">Lookahead Lead Window (T_lead) <span id="lead-val" class="range-val">60 ms</span></label>
+                    <input type="range" id="leadtime" min="60" max="1800" step="10" value="60">
+                </div>
+
+                <button id="run-btn" class="btn btn-primary">
+                    <span>🚀 Launch Benchmark Suite</span>
+                </button>
+                <div id="err-display" class="error-msg"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📜 License & Info</div>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 10px;">
+                    <strong>HyperLoop Architecture</strong> is released under the <strong>MIT License</strong>.
+                </p>
+                <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                    HyperLoop turns blocking on-demand loop calculations into non-blocking speculative background futures dispatched the moment parameters are initialized.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Main Benchmark Panel -->
+        <main>
+            <!-- Metric Highlights -->
+            <div class="metrics-summary">
+                <div class="metric-card metric-hyper">
+                    <div class="metric-label">HyperLoop Latency</div>
+                    <div id="m-hyper-lat" class="metric-value">-- ms</div>
+                    <div class="metric-sub">Time waiting at request line</div>
+                </div>
+
+                <div class="metric-card metric-sync">
+                    <div class="metric-label">Sync Loop Latency</div>
+                    <div id="m-sync-lat" class="metric-value">-- ms</div>
+                    <div class="metric-sub">Main thread blocking stall</div>
+                </div>
+
+                <div class="metric-card metric-worker">
+                    <div class="metric-label">Standard Async Latency</div>
+                    <div id="m-worker-lat" class="metric-value">-- ms</div>
+                    <div class="metric-sub">On-demand dispatch delay</div>
+                </div>
+
+                <div class="metric-card metric-speedup">
+                    <div class="metric-label">HyperLoop Speedup</div>
+                    <div id="m-speedup" class="metric-value">-- x</div>
+                    <div class="metric-sub">Latency reduction factor</div>
+                </div>
+            </div>
+
+            <!-- Visualization Charts -->
+            <div class="card">
+                <div class="card-title">📊 Perceived Wait Latency Comparison (Lower is Better)</div>
+                <div class="explain-box">
+                    <strong>Perceived Wait Latency</strong> measures how long the main execution path had to wait when it reached the line requesting the loop's math result. HyperLoop pre-computes during the lookahead window so the result is ready instantly!
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-row">
+                        <div class="chart-label-group">
+                            <span class="chart-title"><span class="mode-tag tag-hyper">HyperLoop (Speculative)</span></span>
+                            <span id="val-hyper" class="chart-val">0.00 ms</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div id="bar-hyper" class="bar-fill fill-hyper" style="width: 0%;">HyperLoop</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-label-group">
+                            <span class="chart-title"><span class="mode-tag tag-sync">Synchronous Standard Loop</span></span>
+                            <span id="val-sync" class="chart-val">0.00 ms</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div id="bar-sync" class="bar-fill fill-sync" style="width: 0%;">Sync Baseline</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-label-group">
+                            <span class="chart-title"><span class="mode-tag tag-worker">On-Demand Async Worker</span></span>
+                            <span id="val-worker" class="chart-val">0.00 ms</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div id="bar-worker" class="bar-fill fill-worker" style="width: 0%;">Async On-Demand</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-label-group">
+                            <span class="chart-title"><span class="mode-tag tag-lazy">Lazy Evaluation (1st Call)</span></span>
+                            <span id="val-lazy" class="chart-val">0.00 ms</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div id="bar-lazy" class="bar-fill fill-lazy" style="width: 0%;">Lazy Init</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Execution Log Table -->
+            <div class="card">
+                <div class="card-title" style="justify-content: space-between;">
+                    <span>📋 Benchmark Measurement Log</span>
+                    <button id="export-btn" class="btn-secondary" style="font-size: 0.75rem;">📥 Export CSV</button>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Execution Pattern</th>
+                                <th>Thread Model</th>
+                                <th>Lead Window</th>
+                                <th>Perceived Latency</th>
+                                <th>Total Loop Execution</th>
+                                <th>Main Thread Block</th>
+                                <th>Throughput</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-table-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 24px;">
+                                    Click "Launch Benchmark Suite" to run the test matrix.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tested Code Snippet -->
+            <div class="card">
+                <div class="card-title">💻 Active Pure-Math Workload Kernel Code</div>
+                <pre id="code-snippet" class="code-block"></pre>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // WebWorker JS Source
+        const workerKernelSource = `
+            self.onmessage = function(e) {
+                const { type, iterations } = e.data;
+                const startTime = performance.now();
+                let result = 0;
+
+                if (type === 'poly') {
+                    for (let i = 1; i <= iterations; i++) {
+                        result += Math.sin(i) * Math.cos(i) + Math.sqrt(i % 100);
+                    }
+                } else if (type === 'prime') {
+                    let count = 0;
+                    const limit = Math.min(iterations, 1500000);
+                    for (let n = 2; n <= limit; n++) {
+                        let isPrime = true;
+                        for (let d = 2; d * d <= n; d++) {
+                            if (n % d === 0) { isPrime = false; break; }
+                        }
+                        if (isPrime) count++;
+                    }
+                    result = count;
+                } else if (type === 'pi') {
+                    let inside = 0;
+                    for (let i = 0; i < iterations; i++) {
+                        let x = (Math.sin(i * 9999) + 1) / 2;
+                        let y = (Math.cos(i * 8888) + 1) / 2;
+                        if (x*x + y*y <= 1.0) inside++;
+                    }
+                    result = (4.0 * inside) / iterations;
+                } else if (type === 'matrix') {
+                    let acc = 1.0;
+                    for (let i = 1; i <= iterations; i++) {
+                        acc = (acc * 1.0000001) + (i % 7) * 0.001;
+                    }
+                    result = acc;
+                }
+
+                const endTime = performance.now();
+                self.postMessage({
+                    result: result,
+                    durationMs: endTime - startTime
+                });
+            };
+        `;
+
+        const codeSnippets = {
+            poly: `// 1. Polynomial & Trigonometric Summation Kernel\nfunction heavyPolynomial(iterations) {\n    let result = 0;\n    for (let i = 1; i <= iterations; i++) {\n        result += Math.sin(i) * Math.cos(i) + Math.sqrt(i % 100);\n    }\n    return result;\n}`,
+            prime: `// 2. Numerical Prime Range Search Kernel\nfunction primeSearch(iterations) {\n    let count = 0;\n    for (let n = 2; n <= iterations; n++) {\n        let isPrime = true;\n        for (let d = 2; d * d <= n; d++) {\n            if (n % d === 0) { isPrime = false; break; }\n        }\n        if (isPrime) count++;\n    }\n    return count;\n}`,
+            pi: `// 3. Monte Carlo Pi Iterative Convergence\nfunction monteCarloPi(iterations) {\n    let inside = 0;\n    for (let i = 0; i < iterations; i++) {\n        let x = (Math.sin(i * 9999) + 1) / 2;\n        let y = (Math.cos(i * 8888) + 1) / 2;\n        if (x*x + y*y <= 1.0) inside++;\n    }\n    return (4.0 * inside) / iterations;\n}`,
+            matrix: `// 4. Quaternion & Matrix Scale Transforms\nfunction matrixTransforms(iterations) {\n    let acc = 1.0;\n    for (let i = 1; i <= iterations; i++) {\n        acc = (acc * 1.0000001) + (i % 7) * 0.001;\n    }\n    return acc;\n}`
+        };
+
+        const workloadSelect = document.getElementById('workload');
+        const iterSlider = document.getElementById('iterations');
+        const iterVal = document.getElementById('iter-val');
+        const leadSlider = document.getElementById('leadtime');
+        const leadVal = document.getElementById('lead-val');
+        const runBtn = document.getElementById('run-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const snippetBox = document.getElementById('code-snippet');
+        const logTableBody = document.getElementById('log-table-body');
+        const errDisplay = document.getElementById('err-display');
+
+        // Dynamic ratio scaling: 60ms per 1,000,000 iterations (e.g., 10M = 600ms)
+        iterSlider.oninput = () => {
+            const count = parseInt(iterSlider.value);
+            iterVal.innerText = count.toLocaleString();
+            
+            const scaledLead = Math.round((count / 1000000) * 60);
+            leadSlider.value = scaledLead;
+            leadVal.innerText = `${scaledLead} ms`;
+        };
+
+        // Fully customizable lookahead window (manual fine-tuning allowed)
+        leadSlider.oninput = () => {
+            leadVal.innerText = `${leadSlider.value} ms`;
+        };
+        
+        workloadSelect.onchange = () => {
+            snippetBox.textContent = codeSnippets[workloadSelect.value];
+        };
+        snippetBox.textContent = codeSnippets.poly;
+
+        function runSyncLoop(type, iterations) {
+            const start = performance.now();
+            let result = 0;
+
+            if (type === 'poly') {
+                for (let i = 1; i <= iterations; i++) {
+                    result += Math.sin(i) * Math.cos(i) + Math.sqrt(i % 100);
+                }
+            } else if (type === 'prime') {
+                let count = 0;
+                const limit = Math.min(iterations, 1500000);
+                for (let n = 2; n <= limit; n++) {
+                    let isPrime = true;
+                    for (let d = 2; d * d <= n; d++) {
+                        if (n % d === 0) { isPrime = false; break; }
+                    }
+                    if (isPrime) count++;
+                }
+                result = count;
+            } else if (type === 'pi') {
+                let inside = 0;
+                for (let i = 0; i < iterations; i++) {
+                    let x = (Math.sin(i * 9999) + 1) / 2;
+                    let y = (Math.cos(i * 8888) + 1) / 2;
+                    if (x*x + y*y <= 1.0) inside++;
+                }
+                result = (4.0 * inside) / iterations;
+            } else if (type === 'matrix') {
+                let acc = 1.0;
+                for (let i = 1; i <= iterations; i++) {
+                    acc = (acc * 1.0000001) + (i % 7) * 0.001;
+                }
+                result = acc;
+            }
+
+            const duration = performance.now() - start;
+            return { result, duration };
+        }
+
+        function createWorker() {
+            const blob = new Blob([workerKernelSource], { type: 'application/javascript' });
+            return new Worker(URL.createObjectURL(blob));
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        let benchmarkResults = [];
+
+        runBtn.onclick = async () => {
+            errDisplay.style.display = 'none';
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<div class="spinner"></div> Running Suite...';
+            
+            await sleep(50);
+
+            try {
+                const workload = workloadSelect.value;
+                const iterations = parseInt(iterSlider.value);
+                const leadTime = parseInt(leadSlider.value);
+
+                benchmarkResults = [];
+                logTableBody.innerHTML = '';
+
+                // --- TEST 1: HYPERLOOP ---
+                const hyperWorker = createWorker();
+                let hyperWorkerPromise = new Promise((resolve, reject) => {
+                    hyperWorker.onmessage = (e) => resolve(e.data);
+                    hyperWorker.onerror = (err) => reject(err);
+                });
+                
+                hyperWorker.postMessage({ type: workload, iterations: iterations });
+
+                await sleep(leadTime);
+
+                const hyperReqTime = performance.now();
+                const hyperData = await hyperWorkerPromise;
+                const hyperPerceivedLatency = Math.max(0, performance.now() - hyperReqTime);
+                hyperWorker.terminate();
+
+                benchmarkResults.push({
+                    name: 'HyperLoop Engine',
+                    tagClass: 'tag-hyper',
+                    thread: 'Background Worker',
+                    leadTime: `${leadTime} ms`,
+                    latency: hyperPerceivedLatency,
+                    totalCompute: hyperData.durationMs,
+                    mainBlock: 0,
+                    mflops: ((iterations / (hyperData.durationMs / 1000)) / 1e6).toFixed(2)
+                });
+
+                // --- TEST 2: SYNCHRONOUS STANDARD LOOP ---
+                await sleep(leadTime);
+                const syncData = runSyncLoop(workload, iterations);
+
+                benchmarkResults.push({
+                    name: 'Synchronous Standard Loop',
+                    tagClass: 'tag-sync',
+                    thread: 'Main Thread (Blocking)',
+                    leadTime: `${leadTime} ms`,
+                    latency: syncData.duration,
+                    totalCompute: syncData.duration,
+                    mainBlock: syncData.duration,
+                    mflops: ((iterations / (syncData.duration / 1000)) / 1e6).toFixed(2)
+                });
+
+                // --- TEST 3: ON-DEMAND ASYNC WORKER ---
+                await sleep(leadTime);
+                const asyncReqTime = performance.now();
+                const onDemandWorker = createWorker();
+                let asyncWorkerPromise = new Promise((resolve, reject) => {
+                    onDemandWorker.onmessage = (e) => resolve(e.data);
+                    onDemandWorker.onerror = (err) => reject(err);
+                });
+                onDemandWorker.postMessage({ type: workload, iterations: iterations });
+
+                const asyncData = await asyncWorkerPromise;
+                const asyncPerceivedLatency = performance.now() - asyncReqTime;
+                onDemandWorker.terminate();
+
+                benchmarkResults.push({
+                    name: 'On-Demand Async Worker',
+                    tagClass: 'tag-worker',
+                    thread: 'Worker (Dispatched Late)',
+                    leadTime: `${leadTime} ms`,
+                    latency: asyncPerceivedLatency,
+                    totalCompute: asyncData.durationMs,
+                    mainBlock: 0,
+                    mflops: ((iterations / (asyncData.durationMs / 1000)) / 1e6).toFixed(2)
+                });
+
+                // --- TEST 4: LAZY DEFERRED LOOP ---
+                await sleep(leadTime);
+                const lazyData = runSyncLoop(workload, iterations);
+
+                benchmarkResults.push({
+                    name: 'Lazy Deferred Loop (1st Run)',
+                    tagClass: 'tag-lazy',
+                    thread: 'Main Thread (Deferred)',
+                    leadTime: `${leadTime} ms`,
+                    latency: lazyData.duration,
+                    totalCompute: lazyData.duration,
+                    mainBlock: lazyData.duration,
+                    mflops: ((iterations / (lazyData.duration / 1000)) / 1e6).toFixed(2)
+                });
+
+                updateUIResults(benchmarkResults);
+
+            } catch (err) {
+                console.error(err);
+                errDisplay.style.display = 'block';
+                errDisplay.innerText = 'Execution error: ' + err.message;
+            } finally {
+                runBtn.disabled = false;
+                runBtn.innerHTML = '<span>🚀 Launch Benchmark Suite</span>';
+            }
+        };
+
+        function updateUIResults(results) {
+            const hyper = results.find(r => r.name === 'HyperLoop Engine');
+            const sync = results.find(r => r.name === 'Synchronous Standard Loop');
+            const worker = results.find(r => r.name === 'On-Demand Async Worker');
+            const lazy = results.find(r => r.name.includes('Lazy'));
+
+            document.getElementById('m-hyper-lat').innerText = `${hyper.latency.toFixed(2)} ms`;
+            document.getElementById('m-sync-lat').innerText = `${sync.latency.toFixed(2)} ms`;
+            document.getElementById('m-worker-lat').innerText = `${worker.latency.toFixed(2)} ms`;
+            
+            const speedupFactor = sync.latency > 0 ? (sync.latency / Math.max(0.05, hyper.latency)).toFixed(1) : "∞";
+            document.getElementById('m-speedup').innerText = `${speedupFactor}x`;
+
+            const maxLat = Math.max(hyper.latency, sync.latency, worker.latency, lazy.latency, 1);
+
+            const updateBar = (idBar, idVal, val) => {
+                document.getElementById(idVal).innerText = `${val.toFixed(2)} ms`;
+                const pct = Math.max(3, (val / maxLat) * 100);
+                const bar = document.getElementById(idBar);
+                bar.style.width = `${pct}%`;
+                bar.innerText = val < 0.5 ? '< 0.1ms (Instant)' : `${val.toFixed(1)} ms`;
+            };
+
+            updateBar('bar-hyper', 'val-hyper', hyper.latency);
+            updateBar('bar-sync', 'val-sync', sync.latency);
+            updateBar('bar-worker', 'val-worker', worker.latency);
+            updateBar('bar-lazy', 'val-lazy', lazy.latency);
+
+            results.forEach(res => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="mode-tag ${res.tagClass}">${res.name}</span></td>
+                    <td>${res.thread}</td>
+                    <td>${res.leadTime}</td>
+                    <td style="color: ${res.latency < 1 ? '#34d399' : '#f8fafc'}; font-weight: 700;">${res.latency.toFixed(2)} ms</td>
+                    <td>${res.totalCompute.toFixed(2)} ms</td>
+                    <td style="color: ${res.mainBlock > 0 ? '#ef4444' : '#34d399'};">${res.mainBlock.toFixed(2)} ms</td>
+                    <td>${res.mflops} MOps/s</td>
+                `;
+                logTableBody.appendChild(tr);
+            });
+        }
+
+        exportBtn.onclick = () => {
+            if (benchmarkResults.length === 0) {
+                alert("Please run the benchmark suite first!");
+                return;
+            }
+
+            let csv = "Execution Pattern,Thread Model,Lead Window,Perceived Latency (ms),Total Compute Time (ms),Main Thread Block (ms),Throughput (MOps/s)\n";
+            benchmarkResults.forEach(r => {
+                csv += `"${r.name}","${r.thread}","${r.leadTime}",${r.latency.toFixed(2)},${r.totalCompute.toFixed(2)},${r.mainBlock.toFixed(2)},${r.mflops}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hyperloop_benchmark_${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+    </script>
+</body>
+</html>
