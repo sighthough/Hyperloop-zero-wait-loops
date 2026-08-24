@@ -6,6 +6,10 @@ hyperloop is a way of making loops run with zero delays
 check out the benchmark stresstest putting it vs the standards !
 [CLICK HERE TO RUN THE LIVE BENCHMARK](https://sighthough.github.io/Hyperloop-zero-wait-loops/)
 
+there is the index file that is the benchmark if you wanna refference it and rip anything you want from it but 
+ALSO there is a barebone file so you can turn it into any language you want 
+I hope this helps !
+
 HyperLoop eliminates UI freeze and loading spinners by running heavy mathematical calculations speculatively on a background thread *before* the application officially demands the answer.
 
 **What It Does**
