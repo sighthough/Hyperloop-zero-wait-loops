@@ -1,3 +1,22 @@
+Cross-Language Porting Quick Guide
+
+C# / .NET: Replace Worker with Task.Run(), recommendedLookaheadMs with Task.Delay(), and getResult() with await task.
+
+Java: Replace Worker with CompletableFuture.supplyAsync() managed by an ExecutorService.
+
+Python: Replace Worker with concurrent.futures.ProcessPoolExecutor() and use asyncio.sleep() for the lookahead window delay.
+
+C++11 / C++20: Replace Worker with std::async(std::launch::async) and use std::this_thread::sleep_for() using std::chrono::milliseconds.
+
+Go: Replace Worker with a goroutine writing to a buffered chan, and getResult() reading from the channel.
+
+
+
+
+
+
+
+
 /**
  * HyperLoop Speculative Execution Engine (Universal Reference Implementation)
  * 
@@ -107,3 +126,7 @@ export class HyperLoopEngine {
     };
   }
 }
+
+
+
+
