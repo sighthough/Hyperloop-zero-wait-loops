@@ -3,6 +3,9 @@ hyperloop is a way of making loops run with zero delays
 
 *Co-authored by [sighthough](https://youtu.be/UtPiUGwu-0Q) and Gemini 3.6*
 
+check out the benchmark stresstest putting it vs the standards !
+[CLICK HERE TO RUN THE LIVE BENCHMARK](https://sighthough.github.io/Hyperloop-zero-wait-loops/)
+
 HyperLoop eliminates UI freeze and loading spinners by running heavy mathematical calculations speculatively on a background thread *before* the application officially demands the answer.
 
 **What It Does**
