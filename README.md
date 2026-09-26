@@ -1,7 +1,7 @@
 # Hyperloop-zero-wait-loops
 hyperloop is a way of making loops run with zero delays 
 
-*Co-authored by [sighthough](https://youtu.be/UtPiUGwu-0Q) and Gemini 3.6*
+*Co-authored by [sighthough](https://youtu.be/UtPiUGwu-0Q) and [Googles Gemini](https://www.youtube.com/shorts/R3Qo4rBgrD8).*
 
 check out the benchmark stresstest putting it vs the standards !
 [CLICK HERE TO RUN THE LIVE BENCHMARK](https://sighthough.github.io/Hyperloop-zero-wait-loops/)
